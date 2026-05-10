@@ -181,7 +181,8 @@ input[type="color"] {
 .primary-button,
 .tab,
 .icon-button,
-.mode-button {
+.mode-button,
+.smart-button {
   border: 1px solid var(--line);
   background: #fbfdfd;
   color: var(--ink);
@@ -206,6 +207,17 @@ input[type="color"] {
   border-color: var(--accent);
   color: #fff;
   font-weight: 700;
+}
+
+.smart-button {
+  min-height: 38px;
+  padding: 0 12px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .icon-button {
@@ -337,6 +349,15 @@ input[type="color"] {
 
 .word-mode .word-only {
   display: grid;
+}
+
+.word-only-inline {
+  display: none;
+}
+
+.word-mode .word-only-inline {
+  display: inline-grid;
+  place-items: center;
 }
 
 .word-page {

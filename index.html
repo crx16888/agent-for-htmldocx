@@ -83,13 +83,14 @@
               <button class="tab" id="htmlTab" type="button">HTML</button>
             </div>
             <div class="actions">
+              <button class="smart-button word-only-inline" id="smartContractButton" type="button">智能生成合同</button>
               <button class="icon-button" id="formatButton" type="button" title="生成排版" aria-label="生成排版">✓</button>
               <button class="icon-button" id="copyButton" type="button" title="复制富文本" aria-label="复制富文本">⧉</button>
               <button class="icon-button" id="downloadButton" type="button" title="下载文件" aria-label="下载文件">↓</button>
             </div>
           </div>
 
-          <textarea id="sourceInput" class="source-input" spellcheck="false"></textarea>
+          <textarea id="sourceInput" class="source-input" spellcheck="false" placeholder="公众号模式：粘贴文章正文。Word 合同模式：可以粘贴合同原文，也可以粗略写合作内容、双方权益、付款和交付要求，再点击“智能生成合同”。"></textarea>
           <textarea id="htmlOutput" class="html-output hidden" spellcheck="false" readonly></textarea>
         </section>
 

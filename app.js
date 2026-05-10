@@ -79,6 +79,7 @@ const els = {
   previewTitle: document.querySelector("#previewTitle"),
   copyTip: document.querySelector("#copyTip"),
   statusText: document.querySelector("#statusText"),
+  smartContractButton: document.querySelector("#smartContractButton"),
   formatButton: document.querySelector("#formatButton"),
   copyButton: document.querySelector("#copyButton"),
   downloadButton: document.querySelector("#downloadButton"),
@@ -392,6 +393,161 @@ function isContractHeading(text) {
   return /^第[一二三四五六七八九十百\d]+条/.test(text) || /^\d{1,2}[.、]/.test(text);
 }
 
+function hasContractShape(text) {
+  const headingCount = (text.match(/第[一二三四五六七八九十百\d]+条/g) || []).length;
+  return headingCount >= 3 && /甲方|乙方/.test(text);
+}
+
+function extractField(text, labels, fallback) {
+  for (const label of labels) {
+    const pattern = new RegExp(`${label}[：:是为]?\\s*([^\\n；;，,。]+)`);
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+  }
+  return fallback;
+}
+
+function extractMoney(text) {
+  const match = text.match(/((人民币)?\\s*[\\d,.]+\\s*(元|万元|块|RMB|¥))/i);
+  return match ? match[1].replace(/\s+/g, "") : "人民币__________元";
+}
+
+function extractDateRange(text) {
+  const range = text.match(/(\\d{4}年\\d{1,2}月\\d{1,2}日|\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}).{0,8}(至|到|-|—).{0,8}(\\d{4}年\\d{1,2}月\\d{1,2}日|\\d{4}[./-]\\d{1,2}[./-]\\d{1,2})/);
+  if (range) return range[0];
+
+  const duration = text.match(/(合作期|服务期|期限)[：:为是]?\\s*([^\\n。；;]+)/);
+  return duration ? duration[2].trim() : "____年__月__日至____年__月__日";
+}
+
+function extractDelivery(text) {
+  const delivery = text.match(/(交付|成果| deliverable|deliverables)[：:为是]?\\s*([^\\n。；;]+)/i);
+  if (delivery) return delivery[2].trim();
+  return "符合双方书面确认的服务成果、交付物、阶段报告或其他工作成果";
+}
+
+function extractPaymentTerm(text) {
+  if (/分期|节点|预付款|尾款/.test(text)) {
+    return "甲方按照双方确认的付款节点向乙方支付服务费用；如约定预付款、阶段款或尾款的，甲方应在对应节点条件成就后支付。";
+  }
+  if (/一次性|一次付清/.test(text)) {
+    return "甲方应在本合同生效后____个工作日内一次性向乙方支付全部服务费用。";
+  }
+  return "甲方应按照双方另行确认的付款安排向乙方支付服务费用；乙方应在收款前或收款后按甲方要求提供合法有效的发票或收款凭证。";
+}
+
+function splitBriefItems(text, keywords) {
+  const lines = text
+    .split(/[\n；;]/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return lines.filter((line) => keywords.some((keyword) => line.includes(keyword))).slice(0, 4);
+}
+
+function buildSmartContractDraft(brief) {
+  const normalized = brief.trim();
+  const partyA = extractField(normalized, ["甲方", "委托方", "客户方", "买方"], "__________");
+  const partyB = extractField(normalized, ["乙方", "受托方", "服务方", "卖方"], "__________");
+  const project = extractField(normalized, ["项目", "合作内容", "服务内容", "事项"], "相关商务合作项目");
+  const fee = extractMoney(normalized);
+  const dateRange = extractDateRange(normalized);
+  const delivery = extractDelivery(normalized);
+  const paymentTerm = extractPaymentTerm(normalized);
+  const rights = splitBriefItems(normalized, ["权益", "权利", "分成", "所有权", "使用权", "授权"]);
+  const obligations = splitBriefItems(normalized, ["负责", "义务", "提供", "配合", "交付", "验收"]);
+  const confidentiality = /保密|秘密|客户信息|数据/.test(normalized)
+    ? "双方应对合作过程中知悉的商业秘密、技术资料、客户信息、经营数据及其他未公开信息承担保密义务。"
+    : "双方对在合作过程中获知的对方未公开信息负有保密义务，未经对方书面同意不得向第三方披露。";
+
+  const rightsText = rights.length
+    ? rights.map((item, index) => `${index + 1}. ${item.replace(/^[-*\\d.、\\s]+/, "")}`).join("\n")
+    : "1. 双方基于本合同取得的合作权益以合同约定及双方书面确认为准。\n2. 未经对方书面同意，任何一方不得超出合作目的使用对方的名称、商标、资料、成果或其他权益。";
+  const obligationsText = obligations.length
+    ? obligations.map((item, index) => `${index + 1}. ${item.replace(/^[-*\\d.、\\s]+/, "")}`).join("\n")
+    : "1. 甲方应按约定提供必要资料、需求说明和配合条件。\n2. 乙方应按约定完成服务内容，并及时向甲方反馈进度。";
+
+  return `商务合作合同
+
+合同编号：__________
+
+甲方：${partyA}
+统一社会信用代码：__________
+地址：__________
+联系人：__________
+
+乙方：${partyB}
+统一社会信用代码：__________
+地址：__________
+联系人：__________
+
+鉴于甲乙双方拟围绕“${project}”开展合作，双方本着平等自愿、诚实信用、互利共赢的原则，经友好协商，订立本合同，以共同遵守。
+
+第一条 合作内容
+
+1. 甲方委托乙方提供与“${project}”相关的服务、支持或交付工作。
+2. 乙方应根据甲方确认的需求、时间安排和质量标准完成合作事项。
+3. 如合作内容需进一步细化，双方可通过补充协议、需求确认单、项目计划或邮件等书面形式确认。
+
+第二条 双方权利与义务
+
+${obligationsText}
+
+第三条 合作权益
+
+${rightsText}
+
+第四条 交付与验收
+
+1. 乙方应向甲方交付：${delivery}。
+2. 甲方应在收到交付成果后____个工作日内完成验收；如甲方提出合理修改意见，乙方应在合理期限内予以调整。
+3. 甲方逾期未提出书面异议的，视为对应交付成果验收通过。
+
+第五条 合作期限
+
+本合同合作期限为：${dateRange}。合作期限届满后，如双方继续合作，应另行签署书面协议或补充协议。
+
+第六条 费用及支付
+
+1. 本合同项下合作费用为：${fee}。
+2. ${paymentTerm}
+3. 如因甲方需求变更导致工作量、成本或交付周期明显增加，双方应另行协商费用及进度调整。
+
+第七条 保密义务
+
+${confidentiality}保密义务不因本合同终止、解除或履行完毕而失效。
+
+第八条 知识产权
+
+1. 双方在合作前已经拥有的知识产权仍归原权利方所有。
+2. 因本合同产生的服务成果、文档、方案、素材或其他成果的权属及使用范围，由双方根据合作目的另行确认；未明确约定的，任何一方不得擅自转让、许可第三方使用或用于本合同目的之外的事项。
+
+第九条 违约责任
+
+任何一方违反本合同约定，导致合同目的无法实现或给对方造成损失的，应承担违约责任，并赔偿守约方因此遭受的实际损失。因不可抗力导致不能履行的，受影响方应及时通知对方，并在合理范围内减轻损失。
+
+第十条 合同变更与解除
+
+本合同的变更、补充或解除应经双方书面确认。任何一方未经对方书面同意，不得擅自变更或解除本合同，法律另有规定或本合同另有约定的除外。
+
+第十一条 争议解决
+
+因本合同产生或与本合同有关的争议，双方应先友好协商解决；协商不成的，任一方可向合同签署地有管辖权的人民法院提起诉讼。
+
+第十二条 其他
+
+1. 本合同自双方盖章或授权代表签字之日起生效。
+2. 本合同一式两份，甲乙双方各执一份，具有同等法律效力。
+3. 本合同未尽事宜，双方可另行签署补充协议，补充协议与本合同具有同等法律效力。
+
+甲方（盖章）：__________          乙方（盖章）：__________
+
+授权代表：__________              授权代表：__________
+
+日期：____年__月__日              日期：____年__月__日`;
+}
+
 function wordInlineFormat(text) {
   return escapeHtml(text).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 }
@@ -542,6 +698,33 @@ function downloadHtml() {
   flashStatus("已下载");
 }
 
+function generateSmartContract() {
+  if (currentMode !== "word") {
+    setMode("word");
+  }
+
+  const brief = els.sourceInput.value.trim();
+  if (!brief) {
+    els.sourceInput.value =
+      "甲方：____公司\n乙方：____公司\n合作内容：乙方为甲方提供____服务\n费用：人民币____元\n期限：____年__月__日至____年__月__日\n双方权益：____\n交付成果：____";
+    formatArticle();
+    flashStatus("已放入填写提示");
+    return;
+  }
+
+  if (hasContractShape(brief)) {
+    formatArticle();
+    flashStatus("已识别为合同原文");
+    return;
+  }
+
+  els.sourceInput.value = buildSmartContractDraft(brief);
+  wordDraft = els.sourceInput.value;
+  setActiveTab("edit");
+  formatArticle();
+  flashStatus("合同已生成");
+}
+
 function setActiveTab(tab) {
   const isHtml = tab === "html";
   els.editTab.classList.toggle("active", !isHtml);
@@ -595,6 +778,7 @@ function applyModeUi(shouldSwapContent = false) {
     : "设置会保存在当前浏览器。下一步可以接 AI，让它按这些习惯改写和排版。";
   els.copyButton.title = isWord ? "复制合同富文本" : "复制富文本到公众号";
   els.downloadButton.title = isWord ? "下载 Word 文件" : "下载 HTML 文件";
+  els.smartContractButton.classList.toggle("hidden", !isWord);
 
   if (shouldSwapContent) {
     els.sourceInput.value = isWord ? wordDraft || els.wordTemplate.innerHTML.trim() : wechatDraft || els.starterTemplate.innerHTML.trim();
@@ -638,6 +822,7 @@ function bindEvents() {
   els.saveHabitButton.addEventListener("click", savePreferences);
   els.resetButton.addEventListener("click", resetAll);
   els.formatButton.addEventListener("click", formatArticle);
+  els.smartContractButton.addEventListener("click", generateSmartContract);
   els.copyButton.addEventListener("click", copyHtml);
   els.downloadButton.addEventListener("click", downloadHtml);
   els.editTab.addEventListener("click", () => setActiveTab("edit"));
