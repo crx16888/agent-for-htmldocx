@@ -1,7 +1,9 @@
 const STORAGE_KEY = "wechat-layout-editor-preferences";
-const PREFERENCES_VERSION = 2;
+const PREFERENCES_VERSION = 3;
 const DEFAULT_HABIT_NOTE =
   "清爽、克制、耐读；正文 15px，行距偏松；一级标题相对醒目，二级标题清晰但不花哨；每段尽量短，长段自动拆开；二级标题前留白；重点句少量加粗并尽量单独成段；引用只用于观点、小结或金句；不用花哨分割线，不大面积使用强调色。";
+const DEFAULT_WORD_HABIT_NOTE =
+  "商务合同风格；标题居中、庄重；正文使用宋体小四或近似字号；条款层级清晰；甲乙方信息单独排版；正文首行缩进；签署区留白充足；避免花哨颜色，整体正式、克制、可打印。";
 
 const presets = {
   fresh: {
@@ -51,6 +53,10 @@ const presets = {
 };
 
 const els = {
+  appEyebrow: document.querySelector("#appEyebrow"),
+  appTitle: document.querySelector("#appTitle"),
+  wechatModeButton: document.querySelector("#wechatModeButton"),
+  wordModeButton: document.querySelector("#wordModeButton"),
   stylePreset: document.querySelector("#stylePreset"),
   accentColor: document.querySelector("#accentColor"),
   fontSize: document.querySelector("#fontSize"),
@@ -60,12 +66,18 @@ const els = {
   autoShorten: document.querySelector("#autoShorten"),
   autoBold: document.querySelector("#autoBold"),
   autoDivider: document.querySelector("#autoDivider"),
+  autoContractNumbering: document.querySelector("#autoContractNumbering"),
+  autoPartyBlock: document.querySelector("#autoPartyBlock"),
+  autoSignatureBlock: document.querySelector("#autoSignatureBlock"),
   habitNote: document.querySelector("#habitNote"),
+  modeHint: document.querySelector("#modeHint"),
   saveHabitButton: document.querySelector("#saveHabitButton"),
   resetButton: document.querySelector("#resetButton"),
   sourceInput: document.querySelector("#sourceInput"),
   htmlOutput: document.querySelector("#htmlOutput"),
   preview: document.querySelector("#preview"),
+  previewTitle: document.querySelector("#previewTitle"),
+  copyTip: document.querySelector("#copyTip"),
   statusText: document.querySelector("#statusText"),
   formatButton: document.querySelector("#formatButton"),
   copyButton: document.querySelector("#copyButton"),
@@ -73,13 +85,19 @@ const els = {
   editTab: document.querySelector("#editTab"),
   htmlTab: document.querySelector("#htmlTab"),
   starterTemplate: document.querySelector("#starterTemplate"),
+  wordTemplate: document.querySelector("#wordTemplate"),
 };
+
+let currentMode = "wechat";
+let wechatDraft = "";
+let wordDraft = "";
 
 function getPreferences() {
   const preset = presets[els.stylePreset.value];
 
   return {
     version: PREFERENCES_VERSION,
+    appMode: currentMode,
     stylePreset: els.stylePreset.value,
     accentColor: els.accentColor.value || preset.accentColor,
     fontSize: Number(els.fontSize.value),
@@ -89,6 +107,9 @@ function getPreferences() {
     autoShorten: els.autoShorten.checked,
     autoBold: els.autoBold.checked,
     autoDivider: els.autoDivider.checked,
+    autoContractNumbering: els.autoContractNumbering.checked,
+    autoPartyBlock: els.autoPartyBlock.checked,
+    autoSignatureBlock: els.autoSignatureBlock.checked,
     habitNote: els.habitNote.value.trim(),
   };
 }
@@ -104,6 +125,9 @@ function setPreferences(preferences) {
   els.autoShorten.checked = next.autoShorten;
   els.autoBold.checked = next.autoBold;
   els.autoDivider.checked = next.autoDivider;
+  els.autoContractNumbering.checked = next.autoContractNumbering;
+  els.autoPartyBlock.checked = next.autoPartyBlock;
+  els.autoSignatureBlock.checked = next.autoSignatureBlock;
   els.habitNote.value = next.habitNote || "";
 }
 
@@ -119,6 +143,9 @@ function defaultPreferences() {
     autoShorten: true,
     autoBold: true,
     autoDivider: true,
+    autoContractNumbering: true,
+    autoPartyBlock: true,
+    autoSignatureBlock: true,
     habitNote: DEFAULT_HABIT_NOTE,
   };
 }
@@ -137,10 +164,11 @@ function loadPreferences() {
 
   try {
     const preferences = JSON.parse(saved);
+    currentMode = preferences.appMode === "word" ? "word" : "wechat";
     if (preferences.version !== PREFERENCES_VERSION) {
       setPreferences({
         ...defaultPreferences(),
-        habitNote: preferences.habitNote || DEFAULT_HABIT_NOTE,
+        habitNote: currentMode === "word" ? DEFAULT_WORD_HABIT_NOTE : preferences.habitNote || DEFAULT_HABIT_NOTE,
       });
       return;
     }
@@ -352,6 +380,79 @@ function blockToHtml(block, preferences) {
   return `<p style="${paragraphStyle}">${inlineFormat(block.text, preferences)}</p>`;
 }
 
+function isPartyLine(text) {
+  return /^(甲方|乙方|丙方|丁方|委托方|受托方|买方|卖方|出租方|承租方|服务方|客户方|统一社会信用代码|地址|联系人|联系电话|开户行|账号)(：|:)/.test(text);
+}
+
+function isSignatureLine(text) {
+  return /(盖章|签字|授权代表|法定代表人|日期)(：|:|____|__)/.test(text);
+}
+
+function isContractHeading(text) {
+  return /^第[一二三四五六七八九十百\d]+条/.test(text) || /^\d{1,2}[.、]/.test(text);
+}
+
+function wordInlineFormat(text) {
+  return escapeHtml(text).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+}
+
+function wordBlockToHtml(block, preferences) {
+  const text = block.text || "";
+
+  if (block.type === "h1") {
+    return `<h1 style="margin: 0 0 18pt; text-align: center; font-family: SimHei, 'Microsoft YaHei', sans-serif; font-size: 22pt; line-height: 1.4; font-weight: 700; color: #111;">${wordInlineFormat(text)}</h1>`;
+  }
+
+  if (block.type === "h2" || (preferences.autoContractNumbering && isContractHeading(text))) {
+    return `<h2 style="margin: 16pt 0 8pt; font-family: SimHei, 'Microsoft YaHei', sans-serif; font-size: 14pt; line-height: 1.5; font-weight: 700; color: #111;">${wordInlineFormat(text)}</h2>`;
+  }
+
+  if (block.type === "quote") {
+    return `<p style="margin: 0 0 10pt; padding: 8pt 10pt; border-left: 3pt solid #777; background: #f5f5f5; font-family: SimSun, STSong, serif; font-size: 12pt; line-height: 1.8;">${wordInlineFormat(text)}</p>`;
+  }
+
+  if (block.type === "ul") {
+    const items = block.items.map((item) => `<li style="margin: 0 0 5pt;">${wordInlineFormat(item)}</li>`).join("");
+    return `<ul style="margin: 0 0 10pt 22pt; padding: 0; font-family: SimSun, STSong, serif; font-size: 12pt; line-height: 1.8;">${items}</ul>`;
+  }
+
+  if (preferences.autoPartyBlock && isPartyLine(text)) {
+    return `<p style="margin: 0 0 6pt; font-family: SimSun, STSong, serif; font-size: 12pt; line-height: 1.8; font-weight: 700;">${wordInlineFormat(text)}</p>`;
+  }
+
+  if (preferences.autoSignatureBlock && isSignatureLine(text)) {
+    return `<p style="margin: 18pt 0 10pt; font-family: SimSun, STSong, serif; font-size: 12pt; line-height: 2.2;">${wordInlineFormat(text).replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")}</p>`;
+  }
+
+  return `<p style="margin: 0 0 10pt; font-family: SimSun, STSong, serif; font-size: 12pt; line-height: 1.8; text-indent: 24pt; color: #111;">${wordInlineFormat(text)}</p>`;
+}
+
+function renderWordHtml(markdown, preferences, fullDocument = false) {
+  const blocks = parseBlocks(markdown, { ...preferences, autoShorten: false });
+  const content = blocks.map((block) => wordBlockToHtml(block, preferences)).join("\n");
+  const body = `<section class="word-page" style="width: 794px; min-height: 1123px; margin: 0 auto; padding: 76px 86px; background: #fff; color: #111; box-shadow: 0 16px 44px rgba(23, 31, 31, 0.14);">\n${content}\n</section>`;
+
+  if (!fullDocument) {
+    return body;
+  }
+
+  return `<!doctype html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>商务合同</title>
+  <style>
+    @page { size: A4; margin: 2.54cm 3.18cm 2.54cm 3.18cm; }
+    body { margin: 0; font-family: SimSun, STSong, serif; color: #111; }
+    h1, h2, p, li { mso-pagination: widow-orphan; }
+  </style>
+</head>
+<body>
+${content}
+</body>
+</html>`;
+}
+
 function renderWechatHtml(markdown, preferences) {
   const blocks = parseBlocks(markdown, preferences);
   const content = blocks.map((block) => blockToHtml(block, preferences)).join("\n");
@@ -362,9 +463,11 @@ function renderWechatHtml(markdown, preferences) {
 
 function formatArticle() {
   const preferences = getPreferences();
-  const html = renderWechatHtml(els.sourceInput.value, preferences);
+  const html = currentMode === "word" ? renderWordHtml(els.sourceInput.value, preferences) : renderWechatHtml(els.sourceInput.value, preferences);
+  const output = currentMode === "word" ? renderWordHtml(els.sourceInput.value, preferences, true) : html;
+
   els.preview.innerHTML = html;
-  els.htmlOutput.value = html;
+  els.htmlOutput.value = output;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
   flashStatus("已生成");
 }
@@ -426,13 +529,14 @@ function stripHtml(html) {
 }
 
 function downloadHtml() {
-  const html = els.htmlOutput.value || renderWechatHtml(els.sourceInput.value, getPreferences());
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const preferences = getPreferences();
+  const html = currentMode === "word" ? renderWordHtml(els.sourceInput.value, preferences, true) : els.htmlOutput.value || renderWechatHtml(els.sourceInput.value, preferences);
+  const blob = new Blob([html], { type: currentMode === "word" ? "application/msword;charset=utf-8" : "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = "wechat-article.html";
+  link.download = currentMode === "word" ? "business-contract.doc" : "wechat-article.html";
   link.click();
   URL.revokeObjectURL(url);
   flashStatus("已下载");
@@ -460,15 +564,63 @@ function applyPreset() {
   formatArticle();
 }
 
+function setMode(mode) {
+  if (mode === currentMode) return;
+
+  if (currentMode === "wechat") {
+    wechatDraft = els.sourceInput.value;
+  } else {
+    wordDraft = els.sourceInput.value;
+  }
+
+  currentMode = mode;
+  applyModeUi(true);
+  formatArticle();
+}
+
+function applyModeUi(shouldSwapContent = false) {
+  const isWord = currentMode === "word";
+
+  document.body.classList.toggle("word-mode", isWord);
+  els.wechatModeButton.classList.toggle("active", !isWord);
+  els.wordModeButton.classList.toggle("active", isWord);
+  els.appTitle.textContent = isWord ? "Word 合同排版编辑器" : "公众号排版编辑器";
+  els.appEyebrow.textContent = isWord ? "Business Contract Formatter" : "Personal WeChat Editor";
+  els.previewTitle.textContent = isWord ? "Word 合同预览" : "公众号预览";
+  els.copyTip.textContent = isWord
+    ? "下载的是 Word 可打开的 .doc 文件；后续可接后端生成真正 .docx。"
+    : "如果公众号后台没有保留样式，请点击右侧预览区，按 Command/Ctrl + A，再复制粘贴到正文编辑器。";
+  els.modeHint.textContent = isWord
+    ? "Word 模式会自动识别合同标题、甲乙方信息、条款编号和签署区，并生成可由 Word 打开的文件。"
+    : "设置会保存在当前浏览器。下一步可以接 AI，让它按这些习惯改写和排版。";
+  els.copyButton.title = isWord ? "复制合同富文本" : "复制富文本到公众号";
+  els.downloadButton.title = isWord ? "下载 Word 文件" : "下载 HTML 文件";
+
+  if (shouldSwapContent) {
+    els.sourceInput.value = isWord ? wordDraft || els.wordTemplate.innerHTML.trim() : wechatDraft || els.starterTemplate.innerHTML.trim();
+  }
+
+  if (isWord && els.habitNote.value === DEFAULT_HABIT_NOTE) {
+    els.habitNote.value = DEFAULT_WORD_HABIT_NOTE;
+  }
+
+  if (!isWord && els.habitNote.value === DEFAULT_WORD_HABIT_NOTE) {
+    els.habitNote.value = DEFAULT_HABIT_NOTE;
+  }
+}
+
 function resetAll() {
   localStorage.removeItem(STORAGE_KEY);
   setPreferences(defaultPreferences());
-  els.sourceInput.value = els.starterTemplate.innerHTML.trim();
+  els.sourceInput.value = currentMode === "word" ? els.wordTemplate.innerHTML.trim() : els.starterTemplate.innerHTML.trim();
+  els.habitNote.value = currentMode === "word" ? DEFAULT_WORD_HABIT_NOTE : DEFAULT_HABIT_NOTE;
   formatArticle();
   flashStatus("已恢复默认");
 }
 
 function bindEvents() {
+  els.wechatModeButton.addEventListener("click", () => setMode("wechat"));
+  els.wordModeButton.addEventListener("click", () => setMode("word"));
   els.stylePreset.addEventListener("change", applyPreset);
   els.accentColor.addEventListener("input", formatArticle);
   els.fontSize.addEventListener("input", formatArticle);
@@ -478,6 +630,9 @@ function bindEvents() {
   els.autoShorten.addEventListener("change", formatArticle);
   els.autoBold.addEventListener("change", formatArticle);
   els.autoDivider.addEventListener("change", formatArticle);
+  els.autoContractNumbering.addEventListener("change", formatArticle);
+  els.autoPartyBlock.addEventListener("change", formatArticle);
+  els.autoSignatureBlock.addEventListener("change", formatArticle);
   els.habitNote.addEventListener("input", formatArticle);
   els.sourceInput.addEventListener("input", formatArticle);
   els.saveHabitButton.addEventListener("click", savePreferences);
@@ -491,7 +646,10 @@ function bindEvents() {
 
 function init() {
   loadPreferences();
-  els.sourceInput.value = els.starterTemplate.innerHTML.trim();
+  wechatDraft = els.starterTemplate.innerHTML.trim();
+  wordDraft = els.wordTemplate.innerHTML.trim();
+  els.sourceInput.value = currentMode === "word" ? wordDraft : wechatDraft;
+  applyModeUi(false);
   bindEvents();
   formatArticle();
 }

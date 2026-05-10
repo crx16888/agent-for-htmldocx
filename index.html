@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>微信公众号排版编辑器</title>
+    <title>个人文档排版编辑器</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -12,10 +12,15 @@
         <aside class="panel settings-panel" aria-label="排版习惯">
           <div class="brand">
             <div>
-              <p class="eyebrow">Personal WeChat Editor</p>
-              <h1>公众号排版编辑器</h1>
+              <p class="eyebrow" id="appEyebrow">Personal Layout Editor</p>
+              <h1 id="appTitle">个人文档排版编辑器</h1>
             </div>
             <button class="icon-button" id="resetButton" type="button" title="恢复默认习惯" aria-label="恢复默认习惯">↺</button>
+          </div>
+
+          <div class="mode-switch" role="tablist" aria-label="功能模式">
+            <button class="mode-button active" id="wechatModeButton" type="button">公众号</button>
+            <button class="mode-button" id="wordModeButton" type="button">Word 合同</button>
           </div>
 
           <div class="control-group">
@@ -55,13 +60,20 @@
             <label><input id="autoDivider" type="checkbox" checked /> 二级标题前加留白</label>
           </fieldset>
 
+          <fieldset class="switch-list word-only">
+            <legend>Word 合同处理</legend>
+            <label><input id="autoContractNumbering" type="checkbox" checked /> 自动识别条款编号</label>
+            <label><input id="autoPartyBlock" type="checkbox" checked /> 甲乙方信息重点排版</label>
+            <label><input id="autoSignatureBlock" type="checkbox" checked /> 签署区留出空间</label>
+          </fieldset>
+
           <div class="control-group">
             <label for="habitNote">我的排版习惯</label>
             <textarea id="habitNote" rows="6" placeholder="例：标题不要太花；重点句单独成段；结尾保留一句行动提醒。"></textarea>
           </div>
 
           <button class="primary-button" id="saveHabitButton" type="button">保存习惯</button>
-          <p class="hint">设置会保存在当前浏览器。下一步可以接 AI，让它按这些习惯改写和排版。</p>
+          <p class="hint" id="modeHint">设置会保存在当前浏览器。下一步可以接 AI，让它按这些习惯改写和排版。</p>
         </aside>
 
         <section class="editor-column" aria-label="正文编辑">
@@ -72,8 +84,8 @@
             </div>
             <div class="actions">
               <button class="icon-button" id="formatButton" type="button" title="生成排版" aria-label="生成排版">✓</button>
-              <button class="icon-button" id="copyButton" type="button" title="复制富文本到公众号" aria-label="复制富文本到公众号">⧉</button>
-              <button class="icon-button" id="downloadButton" type="button" title="下载 HTML 文件" aria-label="下载 HTML 文件">↓</button>
+              <button class="icon-button" id="copyButton" type="button" title="复制富文本" aria-label="复制富文本">⧉</button>
+              <button class="icon-button" id="downloadButton" type="button" title="下载文件" aria-label="下载文件">↓</button>
             </div>
           </div>
 
@@ -83,11 +95,11 @@
 
         <section class="preview-column" aria-label="公众号预览">
           <div class="preview-header">
-            <span>公众号预览</span>
+            <span id="previewTitle">公众号预览</span>
             <span id="statusText">已生成</span>
           </div>
           <article id="preview" class="wechat-preview" contenteditable="true" spellcheck="false" tabindex="0"></article>
-          <p class="copy-tip">如果公众号后台没有保留样式，请点击右侧预览区，按 Command/Ctrl + A，再复制粘贴到正文编辑器。</p>
+          <p class="copy-tip" id="copyTip">如果公众号后台没有保留样式，请点击右侧预览区，按 Command/Ctrl + A，再复制粘贴到正文编辑器。</p>
         </section>
       </section>
     </main>
@@ -112,6 +124,56 @@
 常用公众号习惯
 
 多数成熟公众号会控制段落长度、减少花哨样式、保持标题层级一致，并把真正重要的句子单独拎出来。</template>
+
+    <template id="wordTemplate">商务服务合同
+
+合同编号：__________
+
+甲方：__________
+统一社会信用代码：__________
+地址：__________
+联系人：__________
+
+乙方：__________
+统一社会信用代码：__________
+地址：__________
+联系人：__________
+
+鉴于甲方拟委托乙方提供相关服务，双方本着平等、自愿、诚实信用的原则，经友好协商，订立本合同。
+
+第一条 服务内容
+
+乙方应按照本合同约定向甲方提供服务，并保证服务成果符合双方确认的需求、标准及时间安排。
+
+第二条 合同期限
+
+本合同期限自____年__月__日起至____年__月__日止。合同期满后，如双方继续合作，应另行签署书面协议。
+
+第三条 费用及支付
+
+甲方应按照双方确认的付款节点向乙方支付服务费用。乙方应在收款前向甲方提供合法有效的发票或收款凭证。
+
+第四条 保密义务
+
+双方应对在合作过程中知悉的商业秘密、技术资料、客户信息及其他未公开信息承担保密义务。未经对方书面同意，任何一方不得向第三方披露。
+
+第五条 违约责任
+
+任何一方违反本合同约定，给对方造成损失的，应承担相应违约责任，并赔偿守约方因此遭受的实际损失。
+
+第六条 争议解决
+
+因本合同产生或与本合同有关的争议，双方应先友好协商解决；协商不成的，任一方可向合同签署地有管辖权的人民法院提起诉讼。
+
+第七条 其他
+
+本合同自双方盖章或授权代表签字之日起生效。本合同一式两份，甲乙双方各执一份，具有同等法律效力。
+
+甲方（盖章）：__________          乙方（盖章）：__________
+
+授权代表：__________              授权代表：__________
+
+日期：____年__月__日              日期：____年__月__日</template>
     <script src="./app.js"></script>
   </body>
 </html>
