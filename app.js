@@ -409,21 +409,52 @@ function extractField(text, labels, fallback) {
   return fallback;
 }
 
+function normalizeChineseNumber(text) {
+  const digits = { 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+  if (/^[零一二两三四五六七八九]$/.test(text)) return digits[text];
+  if (text === "十") return 10;
+  const tenMatch = text.match(/^([一二两三四五六七八九])?十([一二三四五六七八九])?$/);
+  if (tenMatch) {
+    return (tenMatch[1] ? digits[tenMatch[1]] : 1) * 10 + (tenMatch[2] ? digits[tenMatch[2]] : 0);
+  }
+  return Number(text);
+}
+
 function extractMoney(text) {
-  const match = text.match(/((人民币)?\\s*[\\d,.]+\\s*(元|万元|块|RMB|¥))/i);
-  return match ? match[1].replace(/\s+/g, "") : "人民币__________元";
+  const match = text.match(/((人民币|RMB|¥)?\s*[\d,.]+\s*(万)?\s*(元|块)?)/i);
+  if (match && /\d/.test(match[1])) {
+    const rawNumber = Number(match[1].replace(/[^\d.]/g, ""));
+    if (match[3]) return `人民币${rawNumber}万元`;
+    return `人民币${rawNumber.toLocaleString("zh-CN")}元`;
+  }
+
+  const chineseMatch = text.match(/([一二两三四五六七八九十]+)\s*万\s*(元|块)?/);
+  if (chineseMatch) {
+    return `人民币${normalizeChineseNumber(chineseMatch[1])}万元`;
+  }
+
+  return "人民币__________元";
 }
 
 function extractDateRange(text) {
-  const range = text.match(/(\\d{4}年\\d{1,2}月\\d{1,2}日|\\d{4}[./-]\\d{1,2}[./-]\\d{1,2}).{0,8}(至|到|-|—).{0,8}(\\d{4}年\\d{1,2}月\\d{1,2}日|\\d{4}[./-]\\d{1,2}[./-]\\d{1,2})/);
+  const range = text.match(/(\d{4}年\d{1,2}月\d{1,2}日|\d{4}[./-]\d{1,2}[./-]\d{1,2}).{0,8}(至|到|-|—).{0,8}(\d{4}年\d{1,2}月\d{1,2}日|\d{4}[./-]\d{1,2}[./-]\d{1,2})/);
   if (range) return range[0];
 
-  const duration = text.match(/(合作期|服务期|期限)[：:为是]?\\s*([^\\n。；;]+)/);
+  const looseTime = text.match(/(\d{1,2}|[一二三四五六七八九十]+)\s*月\s*(上旬|中旬|下旬|初|底|末)?(的)?(一个)?(上午|下午|晚上|全天)?/);
+  if (looseTime) {
+    const month = /\d+/.test(looseTime[1]) ? looseTime[1] : normalizeChineseNumber(looseTime[1]);
+    return `____年${month}月${looseTime[2] || "____"}${looseTime[5] ? `（${looseTime[5]}）` : ""}`;
+  }
+
+  const duration = text.match(/(合作期|服务期|期限)[：:为是]?\s*([^\n。；;]+)/);
   return duration ? duration[2].trim() : "____年__月__日至____年__月__日";
 }
 
 function extractDelivery(text) {
-  const delivery = text.match(/(交付|成果| deliverable|deliverables)[：:为是]?\\s*([^\\n。；;]+)/i);
+  if (/活动/.test(text)) {
+    return "活动策划方案、执行排期、现场执行支持、活动复盘资料及双方确认的其他活动服务成果";
+  }
+  const delivery = text.match(/(交付|成果| deliverable|deliverables)[：:为是]?\s*([^\n。；;]+)/i);
   if (delivery) return delivery[2].trim();
   return "符合双方书面确认的服务成果、交付物、阶段报告或其他工作成果";
 }
@@ -446,11 +477,36 @@ function splitBriefItems(text, keywords) {
   return lines.filter((line) => keywords.some((keyword) => line.includes(keyword))).slice(0, 4);
 }
 
+function inferNaturalLanguageContract(brief) {
+  const normalized = brief.replace(/\s+/g, " ").trim();
+  const counterpartMatch = normalized.match(/(?:和|与|跟)([^，。,；;\s]+)(?:谈|签|做|进行|合作)/);
+  const payorMatch = normalized.match(/对方|他们|甲方|客户|委托方/);
+  const selfAsServiceProvider = /我.*(帮|为|给).*?(做|提供|负责|执行|策划|承办)/.test(normalized);
+  const activityMatch = normalized.match(/(?:帮|为|给)?(?:他们|对方|甲方|客户)?(?:去)?做([^，。,；;]*活动)|活动/);
+  const servicePhraseMatch = normalized.match(/我.*?(?:帮|为|给).*?(?:他们|对方|甲方|客户)?(?:去)?(做|提供|负责|执行|策划|承办)([^，。,；;]*)/);
+  const serviceCore = servicePhraseMatch && servicePhraseMatch[2] ? servicePhraseMatch[2].trim() : "";
+  const project = activityMatch ? `${serviceCore || ""}${serviceCore.includes("活动") ? "" : "活动"}服务`.replace(/^活动服务$/, "活动策划与执行服务") : serviceCore || extractField(normalized, ["项目", "合作内容", "服务内容", "事项"], "相关商务合作项目");
+  const partyA = counterpartMatch ? counterpartMatch[1].trim() : extractField(normalized, ["甲方", "委托方", "客户方", "买方"], "__________");
+  const partyB = selfAsServiceProvider ? "__________（服务提供方）" : extractField(normalized, ["乙方", "受托方", "服务方", "卖方"], "__________");
+
+  return {
+    partyA,
+    partyB,
+    project,
+    contractTitle: /活动/.test(project) ? "活动服务合作合同" : "商务合作合同",
+    serviceProviderRole: selfAsServiceProvider ? "乙方" : "乙方",
+    clientRole: payorMatch ? "甲方" : "甲方",
+    naturalLanguage: true,
+  };
+}
+
 function buildSmartContractDraft(brief) {
   const normalized = brief.trim();
-  const partyA = extractField(normalized, ["甲方", "委托方", "客户方", "买方"], "__________");
-  const partyB = extractField(normalized, ["乙方", "受托方", "服务方", "卖方"], "__________");
-  const project = extractField(normalized, ["项目", "合作内容", "服务内容", "事项"], "相关商务合作项目");
+  const inferred = inferNaturalLanguageContract(normalized);
+  const partyA = inferred.partyA;
+  const partyB = inferred.partyB;
+  const project = inferred.project;
+  const contractTitle = inferred.contractTitle;
   const fee = extractMoney(normalized);
   const dateRange = extractDateRange(normalized);
   const delivery = extractDelivery(normalized);
@@ -462,13 +518,17 @@ function buildSmartContractDraft(brief) {
     : "双方对在合作过程中获知的对方未公开信息负有保密义务，未经对方书面同意不得向第三方披露。";
 
   const rightsText = rights.length
-    ? rights.map((item, index) => `${index + 1}. ${item.replace(/^[-*\\d.、\\s]+/, "")}`).join("\n")
-    : "1. 双方基于本合同取得的合作权益以合同约定及双方书面确认为准。\n2. 未经对方书面同意，任何一方不得超出合作目的使用对方的名称、商标、资料、成果或其他权益。";
+    ? rights.map((item, index) => `${index + 1}. ${item.replace(/^[-*\d.、\s]+/, "")}`).join("\n")
+    : /活动/.test(project)
+      ? "1. 甲方有权要求乙方按照确认的活动目标、时间安排和服务范围完成活动服务。\n2. 甲方在足额支付合同费用后，有权在本次活动及相关宣传范围内使用乙方交付的活动方案、执行资料及复盘材料。\n3. 未经对方书面同意，任何一方不得超出本次合作目的使用对方名称、商标、资料或其他权益。"
+      : "1. 双方基于本合同取得的合作权益以合同约定及双方书面确认为准。\n2. 未经对方书面同意，任何一方不得超出合作目的使用对方的名称、商标、资料、成果或其他权益。";
   const obligationsText = obligations.length
-    ? obligations.map((item, index) => `${index + 1}. ${item.replace(/^[-*\\d.、\\s]+/, "")}`).join("\n")
-    : "1. 甲方应按约定提供必要资料、需求说明和配合条件。\n2. 乙方应按约定完成服务内容，并及时向甲方反馈进度。";
+    ? obligations.map((item, index) => `${index + 1}. ${item.replace(/^[-*\d.、\s]+/, "")}`).join("\n")
+    : /活动/.test(project)
+      ? "1. 甲方应及时向乙方提供活动目标、品牌要求、场地信息、嘉宾或参与人员安排及其他必要资料。\n2. 甲方应按照合同约定及时支付服务费用，并对乙方提交的方案、物料或执行安排及时反馈确认意见。\n3. 乙方应根据甲方需求完成活动策划、执行准备、现场协调及活动复盘等服务。\n4. 乙方应合理安排服务人员和执行计划，并在活动执行过程中及时与甲方沟通进度及突发事项。"
+      : "1. 甲方应按约定提供必要资料、需求说明和配合条件。\n2. 乙方应按约定完成服务内容，并及时向甲方反馈进度。";
 
-  return `商务合作合同
+  return `${contractTitle}
 
 合同编号：__________
 
@@ -482,13 +542,14 @@ function buildSmartContractDraft(brief) {
 地址：__________
 联系人：__________
 
-鉴于甲乙双方拟围绕“${project}”开展合作，双方本着平等自愿、诚实信用、互利共赢的原则，经友好协商，订立本合同，以共同遵守。
+鉴于甲方拟委托乙方提供“${project}”，乙方具备相应服务能力，双方本着平等自愿、诚实信用、互利共赢的原则，经友好协商，订立本合同，以共同遵守。
 
 第一条 合作内容
 
-1. 甲方委托乙方提供与“${project}”相关的服务、支持或交付工作。
-2. 乙方应根据甲方确认的需求、时间安排和质量标准完成合作事项。
-3. 如合作内容需进一步细化，双方可通过补充协议、需求确认单、项目计划或邮件等书面形式确认。
+1. 甲方委托乙方提供与“${project}”相关的策划、组织、执行、协调及支持服务。
+2. 乙方应结合甲方需求完成活动方案沟通、执行准备、现场支持及活动后的必要复盘工作。
+3. 活动暂定于${dateRange}开展；具体日期、地点、议程、人员分工及执行细节以双方后续书面确认的信息为准。
+4. 如合作内容需进一步细化，双方可通过补充协议、需求确认单、项目计划、聊天记录、邮件等书面形式确认。
 
 第二条 双方权利与义务
 
@@ -506,7 +567,7 @@ ${rightsText}
 
 第五条 合作期限
 
-本合同合作期限为：${dateRange}。合作期限届满后，如双方继续合作，应另行签署书面协议或补充协议。
+本合同合作期限为：自本合同生效之日起至本次活动执行完毕并完成结算之日止。活动时间暂定为${dateRange}。合作期限届满后，如双方继续合作，应另行签署书面协议或补充协议。
 
 第六条 费用及支付
 
