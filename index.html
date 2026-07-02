@@ -3,24 +3,74 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>个人文档排版编辑器</title>
+    <title>公众号 AI 改稿排版助手</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Dong Kehan Engine</p>
+          <h1>公众号 AI 改稿排版助手</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="mode-button active" id="wechatModeButton" type="button">公众号</button>
+          <button class="mode-button" id="wordModeButton" type="button">Word 合同</button>
+        </div>
+      </header>
+
       <section class="workspace">
         <aside class="panel settings-panel" aria-label="排版习惯">
-          <div class="brand">
+          <div class="brand panel-heading">
             <div>
-              <p class="eyebrow" id="appEyebrow">Personal Layout Editor</p>
-              <h1 id="appTitle">个人文档排版编辑器</h1>
+              <p class="eyebrow" id="appEyebrow">Preset Templates</p>
+              <h2 id="appTitle">预设模板</h2>
             </div>
             <button class="icon-button" id="resetButton" type="button" title="恢复默认习惯" aria-label="恢复默认习惯">↺</button>
           </div>
 
-          <div class="mode-switch" role="tablist" aria-label="功能模式">
-            <button class="mode-button active" id="wechatModeButton" type="button">公众号</button>
-            <button class="mode-button" id="wordModeButton" type="button">Word 合同</button>
+          <div class="template-grid wechat-only" aria-label="预设模板">
+            <button class="template-card active" type="button" data-preset="fresh">
+              <strong>董科含长文</strong>
+              <span>场景开头、价值转折、克制结尾。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="sharp">
+              <strong>红色洞察</strong>
+              <span>编号标题与高亮重点，适合强观点。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="sharp">
+              <strong>橙势简报</strong>
+              <span>编号标题、观点突出、适合商业分析。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="calm">
+              <strong>深蓝简报</strong>
+              <span>沉稳层级、结构清晰、适合复盘。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="fresh">
+              <strong>科技杂志</strong>
+              <span>轻科技感、清晰模块、适合方法论。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="sharp">
+              <strong>知识大V</strong>
+              <span>观点卡片、重点句突出、便于转发。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="calm">
+              <strong>Claude 极简</strong>
+              <span>高对比、少装饰、适合技术评论。</span>
+            </button>
+            <button class="template-card" type="button" data-preset="warm">
+              <strong>文艺书信</strong>
+              <span>柔和背景、留白更多、适合叙事。</span>
+            </button>
+          </div>
+
+          <div class="theme-strip wechat-only" aria-label="主题色">
+            <span>主题色</span>
+            <button class="theme-swatch active" type="button" data-color="#2563eb" style="--swatch: #2563eb" aria-label="媒体蓝"></button>
+            <button class="theme-swatch" type="button" data-color="#b45309" style="--swatch: #b45309" aria-label="经典橙"></button>
+            <button class="theme-swatch" type="button" data-color="#dc2626" style="--swatch: #dc2626" aria-label="洞察红"></button>
+            <button class="theme-swatch" type="button" data-color="#1d4ed8" style="--swatch: #1d4ed8" aria-label="深蓝"></button>
+            <button class="theme-swatch" type="button" data-color="#111827" style="--swatch: #111827" aria-label="墨黑"></button>
           </div>
 
           <div class="control-group">
@@ -32,6 +82,8 @@
               <option value="warm">温和叙事流</option>
             </select>
           </div>
+
+          <button class="ai-button wechat-only" id="panelAiButton" type="button">一键AI改稿排版</button>
 
           <div class="control-grid">
             <div class="control-group">
@@ -54,10 +106,22 @@
 
           <fieldset class="switch-list">
             <legend>自动处理</legend>
+            <label class="wechat-only"><input id="autoImproveContent" type="checkbox" checked /> 先改善内容再排版</label>
+            <label class="wechat-only"><input id="autoTypography" type="checkbox" checked /> 自动判断字号行距</label>
             <label><input id="autoHeadings" type="checkbox" checked /> 智能识别标题层级</label>
             <label><input id="autoShorten" type="checkbox" checked /> 长段落自动拆开</label>
             <label><input id="autoBold" type="checkbox" checked /> 重点符号自动加粗</label>
             <label><input id="autoDivider" type="checkbox" checked /> 二级标题前加留白</label>
+          </fieldset>
+
+          <fieldset class="switch-list wechat-only">
+            <legend>董科含内容工作流</legend>
+            <label><input id="useDongKehan" type="checkbox" checked /> 使用董科含式结构约束</label>
+            <div class="control-group compact-control">
+              <label for="narrativeDepth">叙事强度</label>
+              <input id="narrativeDepth" type="range" min="1" max="5" value="3" />
+            </div>
+            <label><input id="keepFactsStrict" type="checkbox" checked /> 事实不补写、不冒充作者</label>
           </fieldset>
 
           <fieldset class="switch-list word-only">
@@ -72,6 +136,11 @@
             <textarea id="habitNote" rows="6" placeholder="例：标题不要太花；重点句单独成段；结尾保留一句行动提醒。"></textarea>
           </div>
 
+          <div class="control-group wechat-only">
+            <label for="imageStyleNote">未来图片风格预设</label>
+            <textarea id="imageStyleNote" rows="5" placeholder="例：像某个品牌海报；干净留白；人物真实摄影；暖光；不要卡通。"></textarea>
+          </div>
+
           <button class="primary-button" id="saveHabitButton" type="button">保存习惯</button>
           <p class="hint" id="modeHint">设置会保存在当前浏览器。下一步可以接 AI，让它按这些习惯改写和排版。</p>
         </aside>
@@ -82,7 +151,10 @@
               <button class="tab active" id="editTab" type="button">编辑</button>
               <button class="tab" id="htmlTab" type="button">HTML</button>
             </div>
+            <span class="word-count" id="wordCount">字数: 0</span>
             <div class="actions">
+              <button class="smart-button wechat-only-inline" id="improveArticleButton" type="button">一键AI排版</button>
+              <button class="smart-button wechat-only-inline ghost" id="promptPackButton" type="button">复制任务包</button>
               <button class="smart-button word-only-inline" id="smartContractButton" type="button">智能生成合同</button>
               <button class="icon-button" id="formatButton" type="button" title="生成排版" aria-label="生成排版">✓</button>
               <button class="icon-button" id="copyButton" type="button" title="复制富文本" aria-label="复制富文本">⧉</button>
@@ -96,10 +168,38 @@
 
         <section class="preview-column" aria-label="公众号预览">
           <div class="preview-header">
-            <span id="previewTitle">公众号预览</span>
+            <div>
+              <span id="previewTitle">模板预览</span>
+              <small id="previewStyleLabel">当前风格：董科含长文</small>
+            </div>
             <span id="statusText">已生成</span>
           </div>
-          <article id="preview" class="wechat-preview" contenteditable="true" spellcheck="false" tabindex="0"></article>
+          <div class="preview-stage">
+            <div class="phone-frame">
+              <div class="phone-top">
+                <span>9:41</span>
+                <span>公众号预览</span>
+              </div>
+              <div class="article-meta">
+                <h2>董科含式内容工作台</h2>
+                <p>原创 · 何慢慢 · 今天</p>
+              </div>
+              <article id="preview" class="wechat-preview" contenteditable="true" spellcheck="false" tabindex="0"></article>
+            </div>
+            <section class="image-lab wechat-only" aria-label="图片生成预留区">
+              <div class="image-lab-header">
+                <div>
+                  <p class="eyebrow">Image Slot</p>
+                  <h2>封面/配图生成</h2>
+                </div>
+                <button class="smart-button ghost" id="imagePromptButton" type="button">生成提示词</button>
+              </div>
+              <div class="image-stage" id="imageStage">
+                <span>未来接入最强生图模型后，这里生成封面、首图或段落配图。</span>
+              </div>
+              <textarea id="imagePromptOutput" class="image-prompt-output" rows="4" readonly placeholder="图片提示词会根据文章主题、董科含式叙事氛围和你的风格预设生成。"></textarea>
+            </section>
+          </div>
           <p class="copy-tip" id="copyTip">如果公众号后台没有保留样式，请点击右侧预览区，按 Command/Ctrl + A，再复制粘贴到正文编辑器。</p>
         </section>
       </section>
