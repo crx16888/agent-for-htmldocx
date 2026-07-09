@@ -1,0 +1,4 @@
+interface:
+  display_name: "董科含"
+  short_description: "分析董科含式创作者档案与文本风格流程"
+  default_prompt: "Use $dong-kehan to analyze a creator article archive or draft in 董科含 style."
