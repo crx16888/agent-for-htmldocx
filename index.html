@@ -10,8 +10,8 @@
     <main class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">Dong Kehan Engine</p>
-          <h1>公众号 AI 改稿排版助手</h1>
+          <p class="eyebrow">AI Layout Studio</p>
+          <h1>EasyFormat</h1>
         </div>
         <div class="topbar-actions">
           <button class="mode-button active" id="wechatModeButton" type="button">公众号</button>
@@ -31,38 +31,41 @@
 
           <div class="template-grid wechat-only" aria-label="预设模板">
             <button class="template-card active" type="button" data-preset="fresh">
-              <strong>董科含长文</strong>
-              <span>场景开头、价值转折、克制结尾。</span>
+              <strong>知识大V</strong>
+              <span>观点型结构与卡片式引用，适合深度公众号。</span>
             </button>
             <button class="template-card" type="button" data-preset="sharp">
               <strong>红色洞察</strong>
-              <span>编号标题与高亮重点，适合强观点。</span>
+              <span>强观点标题与重点标识，适合评论分析。</span>
             </button>
             <button class="template-card" type="button" data-preset="sharp">
               <strong>橙势简报</strong>
-              <span>编号标题、观点突出、适合商业分析。</span>
+              <span>轻度标题编号，适合商业趋势与复盘。</span>
             </button>
             <button class="template-card" type="button" data-preset="calm">
               <strong>深蓝简报</strong>
-              <span>沉稳层级、结构清晰、适合复盘。</span>
+              <span>沉稳信息层级，适合长文梳理。</span>
             </button>
             <button class="template-card" type="button" data-preset="fresh">
               <strong>科技杂志</strong>
-              <span>轻科技感、清晰模块、适合方法论。</span>
+              <span>网格背景与现代标题，适合方法论内容。</span>
             </button>
             <button class="template-card" type="button" data-preset="sharp">
-              <strong>知识大V</strong>
-              <span>观点卡片、重点句突出、便于转发。</span>
+              <strong>量子位</strong>
+              <span>科技感弱色主调，适合前沿科技报道。</span>
             </button>
             <button class="template-card" type="button" data-preset="calm">
-              <strong>Claude 极简</strong>
-              <span>高对比、少装饰、适合技术评论。</span>
+              <strong>极简禅意</strong>
+              <span>大字间距与留白，轻盈且治愈。</span>
             </button>
             <button class="template-card" type="button" data-preset="warm">
-              <strong>文艺书信</strong>
-              <span>柔和背景、留白更多、适合叙事。</span>
+              <strong>纽约时报</strong>
+              <span>经典衬线字体，沉稳且权威。</span>
             </button>
           </div>
+
+          <details class="advanced-settings">
+            <summary>高级设置</summary>
 
           <div class="theme-strip wechat-only" aria-label="主题色">
             <span>主题色</span>
@@ -82,8 +85,6 @@
               <option value="warm">温和叙事流</option>
             </select>
           </div>
-
-          <button class="ai-button wechat-only" id="panelAiButton" type="button">一键AI改稿排版</button>
 
           <div class="control-grid">
             <div class="control-group">
@@ -141,6 +142,9 @@
             <textarea id="imageStyleNote" rows="5" placeholder="例：像某个品牌海报；干净留白；人物真实摄影；暖光；不要卡通。"></textarea>
           </div>
 
+          </details>
+
+          <button class="ai-button wechat-only" id="panelAiButton" type="button">一键AI排版</button>
           <button class="primary-button" id="saveHabitButton" type="button">保存习惯</button>
           <p class="hint" id="modeHint">设置会保存在当前浏览器。下一步可以接 AI，让它按这些习惯改写和排版。</p>
         </aside>
@@ -162,7 +166,7 @@
             </div>
           </div>
 
-          <textarea id="sourceInput" class="source-input" spellcheck="false" placeholder="公众号模式：粘贴文章正文。Word 合同模式：可以粘贴合同原文，也可以粗略写合作内容、双方权益、付款和交付要求，再点击“智能生成合同”。"></textarea>
+          <textarea id="sourceInput" class="source-input" spellcheck="false" placeholder="在此处粘贴您的文章内容…&#10;&#10;开始你的创作之旅，将文字粘贴于此，让 AI 赋予它新的生命！"></textarea>
           <textarea id="htmlOutput" class="html-output hidden" spellcheck="false" readonly></textarea>
         </section>
 

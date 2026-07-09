@@ -122,7 +122,7 @@ const els = {
 let currentMode = "wechat";
 let wechatDraft = "";
 let wordDraft = "";
-let selectedTemplateName = "董科含长文";
+let selectedTemplateName = "知识大V";
 
 function getPreferences() {
   const preset = presets[els.stylePreset.value];
@@ -973,7 +973,9 @@ function renderWechatHtml(markdown, preferences) {
 
 function formatArticle() {
   const preferences = getPreferences();
-  const workingText = currentMode === "word" ? els.sourceInput.value : getWechatWorkingText(preferences);
+  const hasSource = Boolean(els.sourceInput.value.trim());
+  const previewFallback = currentMode === "wechat" && !hasSource ? els.starterTemplate.innerHTML.trim() : "";
+  const workingText = currentMode === "word" ? els.sourceInput.value : previewFallback || getWechatWorkingText(preferences);
   const renderPreferences = currentMode === "word" ? preferences : getRenderPreferences(preferences, workingText);
   const html = currentMode === "word" ? renderWordHtml(workingText, renderPreferences) : renderWechatHtml(workingText, renderPreferences);
   const output = currentMode === "word" ? renderWordHtml(workingText, renderPreferences, true) : html;
@@ -1235,7 +1237,7 @@ function init() {
   loadPreferences();
   wechatDraft = els.starterTemplate.innerHTML.trim();
   wordDraft = els.wordTemplate.innerHTML.trim();
-  els.sourceInput.value = currentMode === "word" ? wordDraft : wechatDraft;
+  els.sourceInput.value = currentMode === "word" ? wordDraft : "";
   applyModeUi(false);
   bindEvents();
   generateImagePrompt();
