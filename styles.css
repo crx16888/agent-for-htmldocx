@@ -2426,3 +2426,174 @@ input[type="color"] {
     width: 280px;
   }
 }
+
+/* Morandi palette pass. This is intentionally the final color layer. */
+:root {
+  --bg: #f4f2ef;
+  --panel: rgba(255, 255, 255, 0.82);
+  --panel-solid: #fffefa;
+  --ink: #2f3130;
+  --muted: #77736c;
+  --soft: #9a958d;
+  --line: rgba(72, 67, 60, 0.11);
+  --line-strong: rgba(72, 67, 60, 0.2);
+  --accent: #7a8b80;
+  --accent-weak: rgba(122, 139, 128, 0.16);
+  --field: rgba(255, 254, 250, 0.76);
+  --field-strong: #fbfaf7;
+  --shadow: 0 18px 48px rgba(82, 76, 66, 0.1);
+  --shadow-soft: 0 1px 2px rgba(82, 76, 66, 0.08);
+}
+
+body {
+  background:
+    linear-gradient(180deg, #fbfaf7 0%, #f4f2ef 46%, #edeae5 100%);
+}
+
+.topbar {
+  background: rgba(251, 250, 247, 0.82);
+}
+
+.topbar h1,
+.panel-heading h2,
+#previewTitle,
+.article-meta h2 {
+  color: #2f3130;
+}
+
+.topbar-actions,
+.tabs {
+  background: rgba(235, 232, 226, 0.78);
+}
+
+.topbar-actions .mode-button.active,
+.tab.active {
+  background: #fffefa;
+  color: #2f3130;
+}
+
+.panel,
+.editor-column,
+.preview-column {
+  background: rgba(255, 254, 250, 0.84);
+}
+
+.panel-heading,
+.toolbar,
+.preview-header,
+.copy-tip {
+  background: rgba(255, 254, 250, 0.54);
+}
+
+.template-card,
+.theme-strip,
+.switch-list,
+.image-lab {
+  background: rgba(255, 254, 250, 0.68);
+}
+
+.template-card:hover {
+  background: #fffefa;
+}
+
+.template-card.active {
+  border-color: rgba(122, 139, 128, 0.48);
+  background: linear-gradient(180deg, rgba(122, 139, 128, 0.14), rgba(255, 254, 250, 0.88));
+  box-shadow: inset 0 0 0 1px rgba(122, 139, 128, 0.09);
+}
+
+.theme-swatch.active {
+  box-shadow:
+    0 0 0 2px #fffefa,
+    0 0 0 4px rgba(122, 139, 128, 0.82),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+select {
+  background:
+    linear-gradient(45deg, transparent 50%, var(--soft) 50%) calc(100% - 15px) 50% / 6px 6px no-repeat,
+    linear-gradient(135deg, var(--soft) 50%, transparent 50%) calc(100% - 10px) 50% / 6px 6px no-repeat,
+    var(--field);
+}
+
+textarea:focus,
+select:focus,
+input:focus {
+  border-color: rgba(122, 139, 128, 0.58);
+  box-shadow: 0 0 0 4px rgba(122, 139, 128, 0.14);
+}
+
+input[type="range"],
+.switch-list input {
+  accent-color: #7a8b80;
+}
+
+.ai-button,
+.primary-button,
+.smart-button {
+  background: #6f8175;
+  color: #fffefa;
+  box-shadow: 0 12px 26px rgba(87, 104, 94, 0.18);
+}
+
+.ai-button:hover,
+.primary-button:hover,
+.smart-button:hover {
+  background: #63756a;
+}
+
+.smart-button.ghost,
+.icon-button {
+  background: rgba(255, 254, 250, 0.78);
+  color: #2f3130;
+}
+
+.source-input,
+.html-output {
+  background: rgba(255, 254, 250, 0.62);
+}
+
+.html-output {
+  background: #fbfaf7;
+}
+
+#statusText {
+  color: #6f8175;
+}
+
+.preview-stage {
+  background:
+    linear-gradient(180deg, rgba(255, 254, 250, 0.42), rgba(244, 242, 239, 0.96));
+}
+
+.phone-frame {
+  border-color: #2f3130;
+  background: #fffefa;
+  box-shadow:
+    0 24px 52px rgba(77, 70, 60, 0.2),
+    inset 0 0 0 1px rgba(255, 254, 250, 0.2);
+}
+
+.phone-top,
+.wechat-preview {
+  background: #fffefa;
+}
+
+.article-meta p {
+  color: #a19b92;
+}
+
+.wechat-preview:focus {
+  box-shadow: inset 0 0 0 4px rgba(122, 139, 128, 0.14);
+}
+
+.image-stage {
+  border-color: rgba(72, 67, 60, 0.16);
+  background:
+    linear-gradient(135deg, rgba(122, 139, 128, 0.13), rgba(183, 158, 139, 0.13)),
+    #fbfaf7;
+}
+
+.word-mode .wechat-preview {
+  background: #f4f2ef;
+}

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "wechat-layout-editor-preferences";
-const PREFERENCES_VERSION = 6;
+const PREFERENCES_VERSION = 7;
 const DEFAULT_HABIT_NOTE =
   "始终使用项目内 skills/dong-kehan 的生成约束；清爽、克制、耐读；正文 15px，行距偏松；一级标题相对醒目，二级标题清晰但不花哨；每段尽量短，长段自动拆开；二级标题前留白；重点句少量加粗并尽量单独成段；引用只用于观点、小结或金句；不用花哨分割线，不大面积使用强调色。";
 const DEFAULT_WORD_HABIT_NOTE =
@@ -21,48 +21,48 @@ const DONG_KEHAN_SKILL_PROFILE = {
 
 const presets = {
   fresh: {
-    accentColor: "#007aff",
+    accentColor: "#7a8b80",
     titleAlign: "left",
     h2Prefix: "",
-    quoteBg: "#eef6ff",
+    quoteBg: "#f2f5f2",
     bodyColor: "#1d1d1f",
     titleColor: "#111113",
-    h2Color: "#007aff",
-    strongBg: "#e7f1ff",
-    listMarker: "#007aff",
+    h2Color: "#6f8175",
+    strongBg: "#e8eee9",
+    listMarker: "#7a8b80",
   },
   calm: {
-    accentColor: "#5856d6",
+    accentColor: "#8d8fa3",
     titleAlign: "left",
     h2Prefix: "",
-    quoteBg: "#f2f1ff",
+    quoteBg: "#f3f2f6",
     bodyColor: "#1d1d1f",
     titleColor: "#111113",
-    h2Color: "#5856d6",
-    strongBg: "#ecebff",
-    listMarker: "#5856d6",
+    h2Color: "#787b90",
+    strongBg: "#ebeaf0",
+    listMarker: "#8d8fa3",
   },
   sharp: {
-    accentColor: "#ff3b30",
+    accentColor: "#a66f63",
     titleAlign: "left",
     h2Prefix: "▌",
-    quoteBg: "#fff2f0",
+    quoteBg: "#f7efec",
     bodyColor: "#1d1d1f",
     titleColor: "#111113",
-    h2Color: "#ff3b30",
-    strongBg: "#ffe8e6",
-    listMarker: "#ff3b30",
+    h2Color: "#9b655a",
+    strongBg: "#f0dfda",
+    listMarker: "#a66f63",
   },
   warm: {
-    accentColor: "#ff9500",
+    accentColor: "#b79e8b",
     titleAlign: "center",
     h2Prefix: "",
-    quoteBg: "#fff7e8",
+    quoteBg: "#f7f1ec",
     bodyColor: "#1d1d1f",
     titleColor: "#111113",
-    h2Color: "#ff9500",
-    strongBg: "#fff0d6",
-    listMarker: "#ff9500",
+    h2Color: "#9c8472",
+    strongBg: "#efe4da",
+    listMarker: "#b79e8b",
   },
 };
 
