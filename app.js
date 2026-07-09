@@ -1,5 +1,5 @@
 const STORAGE_KEY = "wechat-layout-editor-preferences";
-const PREFERENCES_VERSION = 7;
+const PREFERENCES_VERSION = 8;
 const DEFAULT_HABIT_NOTE =
   "始终使用项目内 skills/dong-kehan 的生成约束；清爽、克制、耐读；正文 15px，行距偏松；一级标题相对醒目，二级标题清晰但不花哨；每段尽量短，长段自动拆开；二级标题前留白；重点句少量加粗并尽量单独成段；引用只用于观点、小结或金句；不用花哨分割线，不大面积使用强调色。";
 const DEFAULT_WORD_HABIT_NOTE =
@@ -21,48 +21,48 @@ const DONG_KEHAN_SKILL_PROFILE = {
 
 const presets = {
   fresh: {
-    accentColor: "#7a8b80",
+    accentColor: "#88afa2",
     titleAlign: "left",
     h2Prefix: "",
-    quoteBg: "#f2f5f2",
-    bodyColor: "#1d1d1f",
-    titleColor: "#111113",
-    h2Color: "#6f8175",
-    strongBg: "#e8eee9",
-    listMarker: "#7a8b80",
+    quoteBg: "#f1f8f5",
+    bodyColor: "#25322e",
+    titleColor: "#1f2926",
+    h2Color: "#6d9b8d",
+    strongBg: "#e3f1eb",
+    listMarker: "#88afa2",
   },
   calm: {
-    accentColor: "#8d8fa3",
+    accentColor: "#b7a9d3",
     titleAlign: "left",
     h2Prefix: "",
-    quoteBg: "#f3f2f6",
-    bodyColor: "#1d1d1f",
-    titleColor: "#111113",
-    h2Color: "#787b90",
-    strongBg: "#ebeaf0",
-    listMarker: "#8d8fa3",
+    quoteBg: "#f7f4fb",
+    bodyColor: "#2b2d36",
+    titleColor: "#20222a",
+    h2Color: "#9889ba",
+    strongBg: "#eee8f6",
+    listMarker: "#b7a9d3",
   },
   sharp: {
-    accentColor: "#a66f63",
+    accentColor: "#c98f86",
     titleAlign: "left",
     h2Prefix: "▌",
-    quoteBg: "#f7efec",
-    bodyColor: "#1d1d1f",
-    titleColor: "#111113",
-    h2Color: "#9b655a",
-    strongBg: "#f0dfda",
-    listMarker: "#a66f63",
+    quoteBg: "#fff4f1",
+    bodyColor: "#332a28",
+    titleColor: "#251f1e",
+    h2Color: "#b77a72",
+    strongBg: "#f8e2dd",
+    listMarker: "#c98f86",
   },
   warm: {
-    accentColor: "#b79e8b",
+    accentColor: "#d7a56f",
     titleAlign: "center",
     h2Prefix: "",
-    quoteBg: "#f7f1ec",
-    bodyColor: "#1d1d1f",
-    titleColor: "#111113",
-    h2Color: "#9c8472",
-    strongBg: "#efe4da",
-    listMarker: "#b79e8b",
+    quoteBg: "#fff7ed",
+    bodyColor: "#312b24",
+    titleColor: "#241f1a",
+    h2Color: "#bf8750",
+    strongBg: "#f8e6cc",
+    listMarker: "#d7a56f",
   },
 };
 
